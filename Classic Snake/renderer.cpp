@@ -59,13 +59,6 @@ draw_rect(float x, float y, float half_size_x, float half_size_y, u32 color) {
 	draw_rect_in_pixels(x0, y0, x1, y1, color);
 }
 
-internal void
-draw_arena_border(float arena_x, float arena_y, u32 color) {
-	draw_rect(0, (render_state.height * 0.5f + arena_y) * 0.5f, render_state.width * 0.5f, (render_state.height * 0.5f - arena_y) * 0.5f, color);
-	draw_rect(0, -(render_state.height * 0.5f + arena_y) * 0.5f, render_state.width * 0.5f, (render_state.height * 0.5f - arena_y) * 0.5f, color);
-	draw_rect((render_state.width * 0.5f + arena_x) * 0.5f, 0, (render_state.width * 0.5f - arena_x) * 0.5f, arena_y, color);
-	draw_rect(-(render_state.width * 0.5f + arena_x) * 0.5f, 0, (render_state.width * 0.5f - arena_x) * 0.5f, arena_y, color);
-}
 
 internal void
 draw_number(int number, float x, float y, float size, u32 color) {
@@ -384,7 +377,7 @@ draw_text(const char* text, float x, float y, float size, u32 color) {
 			}
 		}
 		text++;
-		x += size * max_size * 0.8f;
+		x += size * 6.f;
 		y = original_y;
 	}
 }

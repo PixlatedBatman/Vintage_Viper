@@ -1,0 +1,38 @@
+1.
+Snake: Bright Green
+HEX: #32CD32
+
+Background: Dark Blue
+HEX: #00008B
+
+Fruit: Bright Red
+HEX: #FF4500
+
+Score: White
+HEX: #FFFFFF
+
+2.
+Snake: Lime Green
+HEX: #00FF00
+
+Background: Black
+HEX: #000000
+
+Fruit: Bright Yellow
+HEX: #FFFF00
+
+Score: Cyan
+HEX: #00FFFF
+
+3.
+Snake: Electric Blue
+HEX: #00BFFF
+
+Background: Charcoal Grey
+HEX: #36454F
+
+Fruit: Bright Orange
+HEX: #FFA500
+
+Score: Light Grey
+HEX: #D3D3D3
