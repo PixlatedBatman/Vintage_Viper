@@ -81,7 +81,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
 	Input input = {};
 
-	float delta_time = 0.016666666;
+	float delta_time = 0.01666666;
 	LARGE_INTEGER frame_begin_time;
 	QueryPerformanceCounter(&frame_begin_time);
 
