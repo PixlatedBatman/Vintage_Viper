@@ -3,12 +3,12 @@
 #define released(b) (!input->buttons[b].is_down && input->buttons[b].changed)
 
 float arena_half_size_x = 85, arena_half_size_y = 45;			// When changing these values, change Database array size as well
-int square_x = 20, square_y = (arena_half_size_y / arena_half_size_x) * square_x;
-float square_length = arena_half_size_x / square_x;
-float snake_half_size = (92 / 100) * (square_length / 2);			// Percentage smaller the square is can be changed here
-float fruit_half_size = (100 / 100) * (square_length / 2);
-float eye_half_size = square_length / 10;
-float cycle_time = 0, cycle_period = 0.6f;
+int square_x = 20; int square_y = (arena_half_size_y / arena_half_size_x) * square_x;
+float square_length = (2.f * arena_half_size_x) / square_x;
+float snake_half_size = (92.f / 100.f) * (square_length / 2.f);			// Percentage smaller the square is can be changed here
+float fruit_half_size = (100.f / 100.f) * (square_length / 2.f);
+float eye_half_size = square_length / 10.f;
+float cycle_time = 0, cycle_period = 0.45f;
 
 // Database
 int coordinates[20*10], directions[20*10], unoccupied[20*10];
@@ -19,6 +19,7 @@ u32 col_background = 0x000000;
 u32 col_snake = 0x00ff00;					// These can ve viewed in Paint tries folder in the project directory
 u32 col_fruit = 0xffff00;
 u32 col_score = 0x00ffff;
+u32 col_eye = 0xff0000;
 
 
 enum Gamemode {
@@ -30,13 +31,9 @@ enum Gamemode {
 
 Gamemode current_gamemode;
 
-internal void
-draw_snake_body(float x, float y, u32 color) {
-	draw_rect(x, y, snake_half_size, snake_half_size, color);
-}
 
 internal void
-draw_snake_body(float x, float y, int direction, u32 color_body, u32 color_eye) {
+draw_snake_head(float x, float y, int direction, u32 color_body, u32 color_eye) {
 	draw_rect(x, y, snake_half_size, snake_half_size, color_body);
 
 	if (direction == 0 || direction == 1) {
@@ -56,13 +53,32 @@ draw_snake_body(float x, float y, int direction, u32 color_body, u32 color_eye) 
 #include <time.h>
 
 internal int
-randomizer() {
-	srand(time(0));
+randomizer(int start, int end) {
+
 	float rand_percent = static_cast<float>(rand()) / RAND_MAX;
 
-	int rand_ind = static_cast<int>(rand_percent * (square_x * square_y - score - 2));
+	int rand_ind = start + static_cast<int>(rand_percent * end);
 
-	return unoccupied[rand_ind];
+	return rand_ind;
+}
+
+internal float
+x_coordinate(int coordinate) {
+
+	int x_sq = coordinate % square_x;
+	if (!x_sq) x_sq = square_x;
+
+	float x = (static_cast<float>(2 * x_sq - square_x) / 2.f - 0.5f) * square_length;
+	return x;
+}
+
+internal float
+y_coordinate(int coordinate) {
+
+	int y_sq = ((coordinate - 1) / square_x) + 1;
+
+	float y = (y_sq - static_cast<float>(square_y) / 2 - 0.5f) * square_length;
+	return y;
 }
 
 internal void
@@ -85,6 +101,13 @@ simulate_game(Input* input, float dt) {
 
 		if (pressed(BUTTON_ENTER)) {
 			current_gamemode = GM_GAMEPLAY;
+
+			srand(time(0));
+			
+			coordinates[0] = randomizer(1, square_x * square_y);
+			directions[0] = randomizer(0, 3);
+
+			fruit_coordinate = randomizer(1, square_x * square_y);
 		}
 	}
 
@@ -97,12 +120,16 @@ simulate_game(Input* input, float dt) {
 			current_gamemode = GM_WON;
 		}
 
-		cycle_time += dt;
+		//cycle_time += dt;
 
 		if (cycle_time >= cycle_period) {
 			move_snake();
 			cycle_time = 0;
 		}
+
+		draw_snake_head(x_coordinate(coordinates[0]), y_coordinate(coordinates[0]), directions[0], col_snake, col_eye);
+		draw_rect(x_coordinate(fruit_coordinate), y_coordinate(fruit_coordinate), fruit_half_size, fruit_half_size, col_fruit);
+		
 	}
 
 	// Game Over Screen
