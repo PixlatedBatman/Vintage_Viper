@@ -11,8 +11,8 @@ float eye_half_size = square_length / 10.f;
 float cycle_time = 0, cycle_period = 0.45f;
 
 // Database
-int coordinates[20*10], directions[20*10], unoccupied[20*10];
-int fruit_coordinate, score = 0;
+int coordinates[20*10], unoccupied[20*10];
+int fruit_coordinate, score = 0, current_direction, direction;
 
 // Colors
 u32 col_background = 0x000000;
@@ -62,28 +62,61 @@ randomizer(int start, int end) {
 	return rand_ind;
 }
 
+internal int
+x_sq(int coordinate) {
+
+	int pos = (coordinate - 1) % square_x + 1;
+	return pos;
+}
+
 internal float
 x_coordinate(int coordinate) {
 
-	int x_sq = coordinate % square_x;
-	if (!x_sq) x_sq = square_x;
-
-	float x = (static_cast<float>(2 * x_sq - square_x) / 2.f - 0.5f) * square_length;
+	float x = (static_cast<float>(2 * x_sq(coordinate) - square_x) / 2.f - 0.5f) * square_length;
 	return x;
+}
+
+internal int
+y_sq(int coordinate) {
+
+	int pos = ((coordinate - 1) / square_x) + 1;
+	return pos;
 }
 
 internal float
 y_coordinate(int coordinate) {
 
-	int y_sq = ((coordinate - 1) / square_x) + 1;
-
-	float y = (y_sq - static_cast<float>(square_y) / 2 - 0.5f) * square_length;
+	float y = (static_cast<float>(2 * y_sq(coordinate) - square_y) / 2.f - 0.5f) * square_length;
 	return y;
 }
 
 internal void
-move_snake() {
+move_snake(int current_direction) {
 
+	for (int i = score; i > 0; i--) {
+		coordinates[i] = coordinates[i - 1];
+	}
+	
+	if (abs(current_direction - direction) == 2) current_direction = direction;
+
+	if (current_direction == 0) {
+		if (y_sq(coordinates[0]) == square_y) coordinates[0] -= (square_y - 1) * square_x;
+		else coordinates[0] += square_x;
+	}
+	else if (current_direction == 1) {
+		if (x_sq(coordinates[0]) == square_x) coordinates[0] -= (square_x - 1);
+		else coordinates[0]++;
+	}
+	else if (current_direction == 2) {
+		if (y_sq(coordinates[0]) == 1) coordinates[0] += (square_y-1)*square_x;
+		else coordinates[0] -= square_x;
+	}
+	else if(current_direction == 3) {
+		if (x_sq(coordinates[0]) == 1) coordinates[0] += (square_x - 1);
+		coordinates[0]--;
+	}
+
+	direction = current_direction;
 }
 
 
@@ -103,9 +136,13 @@ simulate_game(Input* input, float dt) {
 			current_gamemode = GM_GAMEPLAY;
 
 			srand(time(0));
+
+			score = 0;
+			cycle_time = 0;
 			
 			coordinates[0] = randomizer(1, square_x * square_y);
-			directions[0] = randomizer(0, 3);
+			direction = randomizer(0, 3);
+			current_direction = direction;
 
 			fruit_coordinate = randomizer(1, square_x * square_y);
 		}
@@ -120,14 +157,34 @@ simulate_game(Input* input, float dt) {
 			current_gamemode = GM_WON;
 		}
 
-		//cycle_time += dt;
+		cycle_time += dt;
+
+		if (pressed(BUTTON_UP)) {
+			current_direction = 0;
+		}
+		if (pressed(BUTTON_RIGHT)) {
+			current_direction = 1;
+		}
+		if (pressed(BUTTON_DOWN)) {
+			current_direction = 2;
+		}
+		if (pressed(BUTTON_LEFT)) {
+			current_direction = 3;
+		}
 
 		if (cycle_time >= cycle_period) {
-			move_snake();
+			move_snake(current_direction);
 			cycle_time = 0;
 		}
 
-		draw_snake_head(x_coordinate(coordinates[0]), y_coordinate(coordinates[0]), directions[0], col_snake, col_eye);
+		draw_snake_head(x_coordinate(coordinates[0]), y_coordinate(coordinates[0]), direction, col_snake, col_eye);
+
+		for (int i = 1; i <= score; i++) {
+			draw_rect(x_coordinate(coordinates[i]), y_coordinate(coordinates[i]), snake_half_size, snake_half_size, col_snake);
+		}
+
+
+		// Make the fruit randomizer here
 		draw_rect(x_coordinate(fruit_coordinate), y_coordinate(fruit_coordinate), fruit_half_size, fruit_half_size, col_fruit);
 		
 	}
