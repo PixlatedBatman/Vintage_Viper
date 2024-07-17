@@ -16,3 +16,21 @@ clamp(int min, int val, int max) {					// Clamps the value within the bounds
 	if (val < min) return min;
 	return val;
 }
+
+//#include <random>
+
+internal int
+randomizer(int start, int end) {
+
+	//std::random_device rd;
+	
+	//std::uniform_int_distribution<int> dist(start, end);
+
+	//return dist(rd);
+
+	float rand_percent = static_cast<float>(rand()) / RAND_MAX;
+
+	int rand_ind = start + static_cast<int>(rand_percent * end);
+
+	return rand_ind;
+}

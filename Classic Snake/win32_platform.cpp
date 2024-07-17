@@ -122,6 +122,11 @@ case vk: {\
 					process_button(BUTTON_ENTER, VK_RETURN);
 					process_button(BUTTON_ESC, VK_ESCAPE);
 
+					process_button(BUTTON_W, 'W');
+					process_button(BUTTON_A, 'A');
+					process_button(BUTTON_S, 'S');
+					process_button(BUTTON_D, 'D');
+
 				}
 			} break;
 

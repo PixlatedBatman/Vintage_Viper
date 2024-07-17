@@ -2,17 +2,24 @@
 #define pressed(b) (input->buttons[b].is_down && input->buttons[b].changed)
 #define released(b) (!input->buttons[b].is_down && input->buttons[b].changed)
 
-float arena_half_size_x = 85, arena_half_size_y = 45;			// When changing these values, change Database array size as well
+float arena_half_size_x = 85, arena_half_size_y = 45;			// When changing these values, change Database array sizes as well
+float border_length = 1.4f;
 int square_x = 20; int square_y = (arena_half_size_y / arena_half_size_x) * square_x;
 float square_length = (2.f * arena_half_size_x) / square_x;
 float snake_half_size = (92.f / 100.f) * (square_length / 2.f);			// Percentage smaller the square is can be changed here
 float fruit_half_size = (100.f / 100.f) * (square_length / 2.f);
 float eye_half_size = square_length / 10.f;
-float cycle_time = 0, cycle_period = 0.45f;
+float cycle_time = 0, cycle_period = 0.3f;
 
 // Database
-int coordinates[20*10], unoccupied[20*10];
+int coordinates[1000], unoccupied[1000];
+bool availability[1000];
 int fruit_coordinate, score = 0, current_direction, direction;
+int last_coordinate;
+bool is_collided = false;
+
+// The shift in y axis, so that score can be displayed
+float y_shift = -3.f;
 
 // Colors
 u32 col_background = 0x000000;
@@ -50,18 +57,6 @@ draw_snake_head(float x, float y, int direction, u32 color_body, u32 color_eye) 
 	}
 }
 
-#include <time.h>
-
-internal int
-randomizer(int start, int end) {
-
-	float rand_percent = static_cast<float>(rand()) / RAND_MAX;
-
-	int rand_ind = start + static_cast<int>(rand_percent * end);
-
-	return rand_ind;
-}
-
 internal int
 x_sq(int coordinate) {
 
@@ -93,7 +88,7 @@ y_coordinate(int coordinate) {
 internal void
 move_snake(int current_direction) {
 
-	for (int i = score; i > 0; i--) {
+	for (int i = score+1; i > 0; i--) {
 		coordinates[i] = coordinates[i - 1];
 	}
 	
@@ -108,17 +103,57 @@ move_snake(int current_direction) {
 		else coordinates[0]++;
 	}
 	else if (current_direction == 2) {
-		if (y_sq(coordinates[0]) == 1) coordinates[0] += (square_y-1)*square_x;
+		if (y_sq(coordinates[0]) == 1) coordinates[0] += (square_y - 1) * square_x;
 		else coordinates[0] -= square_x;
 	}
 	else if(current_direction == 3) {
 		if (x_sq(coordinates[0]) == 1) coordinates[0] += (square_x - 1);
-		coordinates[0]--;
+		else coordinates[0]--;
 	}
 
 	direction = current_direction;
 }
 
+internal void
+check_availability() {
+
+	for (int i = 1; i <= 200; i++) {
+		availability[i] = true;
+	}
+
+	for (int i = 0; i <= score; i++) {
+		availability[coordinates[i]] = false;
+	}
+}
+
+internal void
+set_unoccupied() {
+	
+	int index = 0;
+
+	for (int i = 1; i <= 200; i++) {
+		if (availability[i]) {
+			unoccupied[index] = i;
+			index++;
+		}
+		else {
+			continue;
+		}
+	}
+}
+
+internal bool
+check_collision() {
+	for (int i = 1; i <= score; i++) {
+		if (coordinates[i] == coordinates[0]) {
+			return true;
+		}
+		else continue;
+	}
+	return false;
+}
+
+#include <time.h>
 
 internal void
 simulate_game(Input* input, float dt) {
@@ -153,45 +188,89 @@ simulate_game(Input* input, float dt) {
 		if (pressed(BUTTON_ESC)) {
 			current_gamemode = GM_MENU;
 		}
-		else if (pressed(BUTTON_ENTER)) {
-			current_gamemode = GM_WON;
-		}
 
 		cycle_time += dt;
 
-		if (pressed(BUTTON_UP)) {
+		if (pressed(BUTTON_UP) || pressed(BUTTON_W)) {
 			current_direction = 0;
 		}
-		if (pressed(BUTTON_RIGHT)) {
+		if (pressed(BUTTON_RIGHT) || pressed(BUTTON_D)) {
 			current_direction = 1;
 		}
-		if (pressed(BUTTON_DOWN)) {
+		if (pressed(BUTTON_DOWN) || pressed(BUTTON_S)) {
 			current_direction = 2;
 		}
-		if (pressed(BUTTON_LEFT)) {
+		if (pressed(BUTTON_LEFT) || pressed(BUTTON_A)) {
 			current_direction = 3;
 		}
 
+		// Cycle period reached
 		if (cycle_time >= cycle_period) {
+
+			last_coordinate = coordinates[score];
+
+			// Moving the snake in the current_direction
 			move_snake(current_direction);
-			cycle_time = 0;
+
+			cycle_time = 0; // Reset cycle_time
+
+			// Collision detection
+			is_collided = check_collision();
+			if (is_collided) {
+				current_gamemode = GM_OVER;
+				return;
+			}
+
+			// Head reaches fruit
+			if (coordinates[0] == fruit_coordinate) {
+
+				score++;
+				coordinates[score] = last_coordinate;
+
+				// When the maximum score is reached
+				if (score == square_x * square_y - 1) {
+					current_gamemode = GM_WON;
+					return;
+				}
+
+				// Checking positions that are occupied
+				check_availability();
+
+				// Selecting the unoccupied positions
+				set_unoccupied();
+
+				// Finding new fruit coordinate
+				fruit_coordinate = unoccupied[randomizer(0, square_x * square_y - score - 2)];
+
+			}
 		}
 
-		draw_snake_head(x_coordinate(coordinates[0]), y_coordinate(coordinates[0]), direction, col_snake, col_eye);
+		// Rendering snake and fruit
+		draw_snake_head(x_coordinate(coordinates[0]), y_coordinate(coordinates[0]) + y_shift, direction, col_snake, col_eye);
 
 		for (int i = 1; i <= score; i++) {
-			draw_rect(x_coordinate(coordinates[i]), y_coordinate(coordinates[i]), snake_half_size, snake_half_size, col_snake);
+			draw_rect(x_coordinate(coordinates[i]), y_coordinate(coordinates[i]) + y_shift, snake_half_size, snake_half_size, col_snake);
 		}
 
-
-		// Make the fruit randomizer here
-		draw_rect(x_coordinate(fruit_coordinate), y_coordinate(fruit_coordinate), fruit_half_size, fruit_half_size, col_fruit);
+		draw_rect(x_coordinate(fruit_coordinate), y_coordinate(fruit_coordinate) + y_shift, fruit_half_size, fruit_half_size, col_fruit);
 		
+		// Rendering border box
+		draw_rect((square_x * square_length * 0.5f) + (border_length * 0.5f) + (square_length * 0.18f), y_shift, border_length, (square_y * square_length * 0.5f) + 1.3f * border_length, 0x1c1c1c);
+		draw_rect(-((square_x * square_length * 0.5f) + (border_length * 0.5f) + (square_length * 0.18f)), y_shift, border_length, (square_y * square_length * 0.5f) + 1.3f * border_length, 0x1c1c1c);
+		draw_rect(0, (square_y * square_length * 0.5f) + (border_length * 0.5f) + (square_length * 0.18f) + y_shift, (square_x * square_length * 0.5f) + 2.56f * border_length, border_length, 0x1c1c1c);
+		draw_rect(0, -((square_y * square_length * 0.5f) + (border_length * 0.5f) + (square_length * 0.18f)) + y_shift, (square_x * square_length * 0.5f) + 2.56f * border_length, border_length, 0x1c1c1c);
+
+		// Rendering live score
+		draw_number(score, 0, arena_half_size_y + border_length, 1.3f, col_score);
 	}
 
 	// Game Over Screen
 	else if (current_gamemode == GM_OVER) {
+
 		draw_text("GAME OVER", -45, 20, 1.7, 0x00ff00);
+		draw_text("YOUR SCORE", -33, 0, 1.1, col_score);
+
+		draw_number(score, 2, -15, 1.2, col_score);
 
 		if (pressed(BUTTON_ESC)) {
 			current_gamemode = GM_MENU;
