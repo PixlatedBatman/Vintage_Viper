@@ -15,6 +15,7 @@ global_variable Render_State render_state;
 #include "renderer.cpp"
 #include "platform_common.cpp"
 #include "game.cpp"
+#include "game_functions.cpp"
 
 LRESULT CALLBACK window_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	LRESULT result = 0;
@@ -81,7 +82,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
 	Input input = {};
 
-	float delta_time = 0.01666666;
+	float delta_time = 0.01666666f;
 	LARGE_INTEGER frame_begin_time;
 	QueryPerformanceCounter(&frame_begin_time);
 
@@ -140,7 +141,7 @@ case vk: {\
 		}
 
 		// Simulation
-
+		
 		simulate_game(&input, delta_time);
 
 		// Rendering

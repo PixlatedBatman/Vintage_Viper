@@ -51,10 +51,10 @@ draw_rect(float x, float y, float half_size_x, float half_size_y, u32 color) {
 	y += render_state.height / 2.f;
 
 	// Change to pixels
-	int x0 = x - half_size_x;
-	int x1 = x + half_size_x;
-	int y0 = y - half_size_y;
-	int y1 = y + half_size_y;
+	int x0 = static_cast<int>(x - half_size_x);
+	int x1 = static_cast<int>(x + half_size_x);
+	int y0 = static_cast<int>(y - half_size_y);
+	int y1 = static_cast<int>(y + half_size_y);
 
 	draw_rect_in_pixels(x0, y0, x1, y1, color);
 }
@@ -74,11 +74,11 @@ draw_number(int number, float x, float y, float size, u32 color) {
 			draw_rect(x + size, y, size * 0.5f, size * 2.5f, color);
 			draw_rect(x, y + 2.0f * size, size * 0.5f, size * 0.5f, color);
 			draw_rect(x, y - 2.0f * size, size * 0.5f, size * 0.5f, color);
-			x -= 4.0f;
+			x -= 4.0f * size;
 		} break;
 		case 1: {
 			draw_rect(x + size, y, size * 0.5f, size * 2.5f, color);
-			x -= 2.0f;
+			x -= 2.0f * size;
 		} break;
 		case 2: {
 			draw_rect(x, y + 2.0f * size, size * 1.5f, size * 0.5f, color);
@@ -86,20 +86,20 @@ draw_number(int number, float x, float y, float size, u32 color) {
 			draw_rect(x, y, size * 1.5f, size * 0.5f, color);
 			draw_rect(x + size, y + size, size * 0.5f, size * 1.5f, color);
 			draw_rect(x - size, y - size, size * 0.5f, size * 1.5f, color);
-			x -= 4.0f;
+			x -= 4.0f * size;
 		} break;
 		case 3: {
 			draw_rect(x + size, y, size * 0.5f, size * 2.5f, color);
 			draw_rect(x, y + 2.0f * size, size * 1.5f, size * 0.5f, color);
 			draw_rect(x, y - 2.0f * size, size * 1.5f, size * 0.5f, color);
 			draw_rect(x, y, size * 1.5f, size * 0.5f, color);
-			x -= 4.0f;
+			x -= 4.0f * size;
 		} break;
 		case 4: {
 			draw_rect(x + size, y, size * 0.5f, size * 2.5f, color);
 			draw_rect(x - size, y + size, size * 0.5f, size * 1.5f, color);
 			draw_rect(x, y, size * 1.5f, size * 0.5f, color);
-			x -= 4.0f;
+			x -= 4.0f * size;
 		} break;
 		case 5: {
 			draw_rect(x, y + 2.0f * size, size * 1.5f, size * 0.5f, color);
@@ -107,7 +107,7 @@ draw_number(int number, float x, float y, float size, u32 color) {
 			draw_rect(x, y, size * 1.5f, size * 0.5f, color);
 			draw_rect(x - size, y + size, size * 0.5f, size * 1.5f, color);
 			draw_rect(x + size, y - size, size * 0.5f, size * 1.5f, color);
-			x -= 4.0f;
+			x -= 4.0f * size;
 		} break;
 		case 6: {
 			draw_rect(x - size, y, size * 0.5f, size * 2.5f, color);
@@ -115,12 +115,12 @@ draw_number(int number, float x, float y, float size, u32 color) {
 			draw_rect(x, y - 2.0f * size, size * 1.5f, size * 0.5f, color);
 			draw_rect(x, y, size * 1.5f, size * 0.5f, color);
 			draw_rect(x + size, y - size, size * 0.5f, size * 1.5f, color);
-			x -= 4.0f;
+			x -= 4.0f * size;
 		} break;
 		case 7: {
 			draw_rect(x + size, y, size * 0.5f, size * 2.5f, color);
 			draw_rect(x, y + 2.0f * size, size * 1.5f, size * 0.5f, color);
-			x -= 4.0f;
+			x -= 4.0f * size;
 		} break;
 		case 8: {
 			draw_rect(x - size, y, size * 0.5f, size * 2.5f, color);
@@ -128,7 +128,7 @@ draw_number(int number, float x, float y, float size, u32 color) {
 			draw_rect(x, y + 2.0f * size, size * 0.5f, size * 0.5f, color);
 			draw_rect(x, y - 2.0f * size, size * 0.5f, size * 0.5f, color);
 			draw_rect(x, y, size * 1.5f, size * 0.5f, color);
-			x -= 4.0f;
+			x -= 4.0f * size;
 		} break;
 		case 9: {
 			draw_rect(x + size, y, size * 0.5f, size * 2.5f, color);
@@ -136,7 +136,7 @@ draw_number(int number, float x, float y, float size, u32 color) {
 			draw_rect(x, y - 2.0f * size, size * 1.5f, size * 0.5f, color);
 			draw_rect(x, y, size * 1.5f, size * 0.5f, color);
 			draw_rect(x - size, y + size, size * 0.5f, size * 1.5f, color);
-			x -= 4.0f;
+			x -= 4.0f * size;
 		} break;
 		}
 	}

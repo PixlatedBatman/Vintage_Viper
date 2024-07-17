@@ -4,7 +4,7 @@
 
 float arena_half_size_x = 85, arena_half_size_y = 45;			// When changing these values, change Database array sizes as well
 float border_length = 1.4f;
-int square_x = 20; int square_y = (arena_half_size_y / arena_half_size_x) * square_x;
+int square_x = 20; int square_y = static_cast<int>((arena_half_size_y / arena_half_size_x) * square_x);
 float square_length = (2.f * arena_half_size_x) / square_x;
 float snake_half_size = (92.f / 100.f) * (square_length / 2.f);			// Percentage smaller the square is can be changed here
 float fruit_half_size = (100.f / 100.f) * (square_length / 2.f);
@@ -57,6 +57,9 @@ draw_snake_head(float x, float y, int direction, u32 color_body, u32 color_eye) 
 	}
 }
 
+// x_sq and y_sq denote the xth and yth square position with the bottom left most square reference as (1,1)
+// x_coordinate and y_coordinate are coordinates of the centres of the squares and are wrt pixels in the window
+
 internal int
 x_sq(int coordinate) {
 
@@ -88,10 +91,10 @@ y_coordinate(int coordinate) {
 internal void
 move_snake(int current_direction) {
 
-	for (int i = score+1; i > 0; i--) {
+	for (int i = score + 1; i > 0; i--) {
 		coordinates[i] = coordinates[i - 1];
 	}
-	
+
 	if (abs(current_direction - direction) == 2) current_direction = direction;
 
 	if (current_direction == 0) {
@@ -106,7 +109,7 @@ move_snake(int current_direction) {
 		if (y_sq(coordinates[0]) == 1) coordinates[0] += (square_y - 1) * square_x;
 		else coordinates[0] -= square_x;
 	}
-	else if(current_direction == 3) {
+	else if (current_direction == 3) {
 		if (x_sq(coordinates[0]) == 1) coordinates[0] += (square_x - 1);
 		else coordinates[0]--;
 	}
@@ -114,6 +117,7 @@ move_snake(int current_direction) {
 	direction = current_direction;
 }
 
+// Appends availability array to check which spots are occupied and which arent
 internal void
 check_availability() {
 
@@ -126,6 +130,7 @@ check_availability() {
 	}
 }
 
+// Finds the unoccupied coordinates and appends them to unoccupied array for the generation of random fruit coordinates
 internal void
 set_unoccupied() {
 	
@@ -142,6 +147,7 @@ set_unoccupied() {
 	}
 }
 
+// Checks for collision between the head of the snake and any other body part of it 
 internal bool
 check_collision() {
 	for (int i = 1; i <= score; i++) {
@@ -153,14 +159,27 @@ check_collision() {
 	return false;
 }
 
+// Resets the game statistics so that new game can start
+internal void reset_stats() {
+	score = 0;
+	cycle_time = 0;
+
+	coordinates[0] = randomizer(1, square_x * square_y);
+	direction = randomizer(0, 3);
+	current_direction = direction;
+
+	fruit_coordinate = randomizer(1, square_x * square_y);
+}
+
+// Time is used for generating randomness for now, may be changed if better randomness algorithm found
 #include <time.h>
+
 
 internal void
 simulate_game(Input* input, float dt) {
 	//render_background();
 
-	clear_screen(0x000000);					// 0x800080 for purple box
-	//draw_rect(0, 0, 85, 45, 0x000000);
+	clear_screen(0x000000);
 
 	// Menu
 	if (current_gamemode == GM_MENU) {
@@ -170,16 +189,9 @@ simulate_game(Input* input, float dt) {
 		if (pressed(BUTTON_ENTER)) {
 			current_gamemode = GM_GAMEPLAY;
 
-			srand(time(0));
+			srand(static_cast<unsigned int>(time(nullptr)));
 
-			score = 0;
-			cycle_time = 0;
-			
-			coordinates[0] = randomizer(1, square_x * square_y);
-			direction = randomizer(0, 3);
-			current_direction = direction;
-
-			fruit_coordinate = randomizer(1, square_x * square_y);
+			reset_stats();
 		}
 	}
 
@@ -189,6 +201,7 @@ simulate_game(Input* input, float dt) {
 			current_gamemode = GM_MENU;
 		}
 
+		// Updating cycle time to check for cycle periods
 		cycle_time += dt;
 
 		if (pressed(BUTTON_UP) || pressed(BUTTON_W)) {
@@ -267,13 +280,17 @@ simulate_game(Input* input, float dt) {
 	// Game Over Screen
 	else if (current_gamemode == GM_OVER) {
 
-		draw_text("GAME OVER", -45, 20, 1.7, 0x00ff00);
-		draw_text("YOUR SCORE", -33, 0, 1.1, col_score);
+		draw_text("GAME OVER", -45, 20, 1.7f, 0x00ff00);
+		draw_text("YOUR SCORE", -33, 0, 1.1f, col_fruit);
 
-		draw_number(score, 2, -15, 1.2, col_score);
+		draw_number(score, 2, -18, 1.4f, col_score);
 
 		if (pressed(BUTTON_ESC)) {
 			current_gamemode = GM_MENU;
+		}
+		if (pressed(BUTTON_ENTER)) {
+			reset_stats();
+			current_gamemode = GM_GAMEPLAY;
 		}
 	}
 
@@ -281,9 +298,9 @@ simulate_game(Input* input, float dt) {
 	else {
 
 		// Make the text Congo switch colors in duty cycles
-		draw_text("CONGRATULATIONS", -78, 30, 1.8, 0xffff00);
-		draw_text("YOU HAVE WON", -42, 0, 1.2, 0x00ffff);
-		draw_text("VINTAGE VIPER", -55, -25, 1.5, 0x00ff00);
+		draw_text("CONGRATULATIONS", -78, 30, 1.8f, 0xffff00);
+		draw_text("YOU HAVE WON", -42, 0, 1.2f, 0x00ffff);
+		draw_text("VINTAGE VIPER", -55, -25, 1.5f, 0x00ff00);
 
 		if (pressed(BUTTON_ESC)) {
 			current_gamemode = GM_MENU;
