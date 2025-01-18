@@ -2,24 +2,39 @@
 #define pressed(b) (input->buttons[b].is_down && input->buttons[b].changed)
 #define released(b) (!input->buttons[b].is_down && input->buttons[b].changed)
 
-float arena_half_size_x = 85, arena_half_size_y = 45;			// When changing these values, change Database array sizes as well
+
+
+// Change this value to change the number of squares along x_axis. Number of squares along y axis will change accordingly
+// Keep this value to be less than or equal to 48
+int square_x = 8;
+
+// Change this value to adjust the speed of the movement of the snake
+// The units are in number of frames per square
+float cycle_period = 0.3f;
+
+
+
+float arena_half_size_x = 85, arena_half_size_y = 45;			
 float border_length = 1.4f;
-int square_x = 20; int square_y = static_cast<int>((arena_half_size_y / arena_half_size_x) * square_x);
+int square_y = static_cast<int>((arena_half_size_y / arena_half_size_x) * square_x);
 float square_length = (2.f * arena_half_size_x) / square_x;
 float snake_half_size = (92.f / 100.f) * (square_length / 2.f);			// Percentage smaller the square is can be changed here
 float fruit_half_size = (100.f / 100.f) * (square_length / 2.f);
 float eye_half_size = square_length / 10.f;
-float cycle_time = 0, cycle_period = 0.3f;
+float cycle_time = 0;
+
 
 // Database
-int coordinates[1000], unoccupied[1000];
-bool availability[1000];
+int coordinates[1153], unoccupied[1153];
+bool availability[1153];
 int fruit_coordinate, score = 0, current_direction, direction;
 int last_coordinate;
 bool is_collided = false;
 
+
 // The shift in y axis, so that score can be displayed
 float y_shift = -3.f;
+
 
 // Colors
 u32 col_background = 0x000000;
@@ -56,6 +71,7 @@ draw_snake_head(float x, float y, int direction, u32 color_body, u32 color_eye) 
 		draw_rect(x - 2 * eye_half_size, y + 2 * eye_half_size, eye_half_size, eye_half_size, color_eye);
 	}
 }
+
 
 // x_sq and y_sq denote the xth and yth square position with the bottom left most square reference as (1,1)
 // x_coordinate and y_coordinate are coordinates of the centres of the squares and are wrt pixels in the window
@@ -171,10 +187,11 @@ internal void reset_stats() {
 	fruit_coordinate = randomizer(1, square_x * square_y);
 }
 
-// Time is used for generating randomness for now, may be changed if better randomness algorithm found
+// Time is used as a seed for generating randomness 
 #include <time.h>
 
 
+// The main game simulation function
 internal void
 simulate_game(Input* input, float dt) {
 	//render_background();
@@ -193,6 +210,10 @@ simulate_game(Input* input, float dt) {
 
 			reset_stats();
 		}
+
+		if (pressed(BUTTON_ESC)) {				// Shortcut to close the window
+			running = false;
+		}
 	}
 
 	// Gameplay
@@ -205,16 +226,16 @@ simulate_game(Input* input, float dt) {
 		cycle_time += dt;
 
 		if (pressed(BUTTON_UP) || pressed(BUTTON_W)) {
-			current_direction = 0;
+			if (abs(direction - 0) % 2 != 0) current_direction = 0;
 		}
 		if (pressed(BUTTON_RIGHT) || pressed(BUTTON_D)) {
-			current_direction = 1;
+			if (abs(direction - 1) % 2 != 0) current_direction = 1;
 		}
 		if (pressed(BUTTON_DOWN) || pressed(BUTTON_S)) {
-			current_direction = 2;
+			if (abs(direction - 2) % 2 != 0) current_direction = 2;
 		}
 		if (pressed(BUTTON_LEFT) || pressed(BUTTON_A)) {
-			current_direction = 3;
+			if (abs(direction - 3) % 2 != 0) current_direction = 3;
 		}
 
 		// Cycle period reached
@@ -292,6 +313,7 @@ simulate_game(Input* input, float dt) {
 			reset_stats();
 			current_gamemode = GM_GAMEPLAY;
 		}
+
 	}
 
 	// Won the game
